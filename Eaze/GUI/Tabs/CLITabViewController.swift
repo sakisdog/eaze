@@ -28,6 +28,9 @@ final class CLITabViewController: UIViewController {
         if !bluetoothSerial.isConnected {
             enterCLIButton.isEnabled = false
         }
+        if !tcpserial.isConnected {
+            enterCLIButton.isEnabled = false
+        }
         
         if UIDevice.isPhone {
             bigLabel.text = "CLI Mode" // on iPad 'Command Line Interface'

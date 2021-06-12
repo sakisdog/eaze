@@ -110,8 +110,10 @@ let MSP_ACC_TRIM        = 240
 let MSP_EEPROM_WRITE    = 250
 
 
-final class MSPInterpreter: BluetoothSerialDelegate {
+final class MSPInterpreter: BluetoothSerialDelegate, TCPSerialDelegate {
     
+    
+
     var subscribers = [Int: WeakSet<MSPUpdateSubscriber>]()
     var callbacks: [(code: Int, callback: () -> Void)] = []
     
@@ -122,6 +124,15 @@ final class MSPInterpreter: BluetoothSerialDelegate {
     var messageLengthReceived: UInt8 = 0
     var messageData: [UInt8] = []
     var messageChecksum: UInt8 = 0
+    
+    func tcpserialdatareceived(message: String) {
+        print("Received messege in MSPIntepreter: \(message)")
+    }
+    func tcpserialdatareceived(data: Data) {
+        var bytes = [UInt8](repeating: 0, count: data.count / MemoryLayout<UInt8>.size)
+        (data as NSData).getBytes(&bytes, length: data.count)
+        interpretMSP(bytes)
+    }
     
     func serialPortReceivedData(_ data: Data) {
         var bytes = [UInt8](repeating: 0, count: data.count / MemoryLayout<UInt8>.size)
@@ -784,7 +795,8 @@ final class MSPInterpreter: BluetoothSerialDelegate {
     func sendMSP(_ code: Int, bytes: [UInt8]?, callback: (() -> Void)?) {
         // only send msp codes if we'll get the reply
         guard bluetoothSerial.delegate as AnyObject? === self && !cliActive else { return }
-        
+        guard tcpserial.delegate as AnyObject? === self && !cliActive else { return }
+
         // add callback
         if callback != nil {
             callbacks.append((code, callback!))
@@ -800,8 +812,8 @@ final class MSPInterpreter: BluetoothSerialDelegate {
         var message: [UInt8] = [36, 77, 60, length, codeByte]
         if length > 0 { message += bytes! }
         message.append(checksum)
-        
-        bluetoothSerial.sendBytesToDevice(message)
+        tcpserial.sendBytesToDevice(message)
+        //bluetoothSerial.sendBytesToDevice(message)
     }
     
     func sendMSP(_ code: Int, bytes: [UInt8]?) {

@@ -43,7 +43,11 @@ class GeneralConfigViewController: GroupedTableViewController, SelectionTableVie
         if bluetoothSerial.isConnected {
             sendDataRequest()
             serialOpened()
-        } else {
+        } else if tcpserial.isConnected {
+                sendDataRequest()
+                serialOpened()
+            }
+            else {
             serialClosed()
         }
         

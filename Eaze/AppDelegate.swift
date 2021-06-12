@@ -25,7 +25,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UITabBarControllerD
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // bluetooth serial
         bluetoothSerial.delegate = msp
-        
+        tcpserial.delegate = msp
         // userdefaults
         userDefaults.register(
             defaults: [DefaultsAutoConnectNewKey: true,

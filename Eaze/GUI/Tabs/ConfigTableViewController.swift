@@ -48,7 +48,7 @@ final class ConfigTableViewController: UITableViewController {
         isLoading = true
         
         // load vc async for better performance
-        DispatchQueue(label: "nl.hangar42.eaze.loadConfig").async {
+        DispatchQueue.main.async {
             let vc = self.storyboard!.instantiateViewController(withIdentifier: self.identifiers[indexPath.section][indexPath.row])
             
             DispatchQueue.main.async {

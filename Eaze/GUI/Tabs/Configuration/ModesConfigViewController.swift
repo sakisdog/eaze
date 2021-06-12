@@ -35,6 +35,9 @@ class ModesConfigViewController: GroupedTableViewController, MSPUpdateSubscriber
         if bluetoothSerial.isConnected {
             sendDataRequest()
             serialOpened()
+        } else if tcpserial.isConnected {
+            sendDataRequest()
+            serialOpened()
         } else {
             serialClosed()
         }
@@ -52,6 +55,9 @@ class ModesConfigViewController: GroupedTableViewController, MSPUpdateSubscriber
         if bluetoothSerial.isConnected {
             scheduleUpdateTimer()
         }
+        if tcpserial.isConnected {
+            scheduleUpdateTimer()
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -65,6 +71,9 @@ class ModesConfigViewController: GroupedTableViewController, MSPUpdateSubscriber
     
     @objc func didBecomeActive() {
         if isBeingShown && bluetoothSerial.isConnected {
+            scheduleUpdateTimer()
+        }
+        if isBeingShown && tcpserial.isConnected {
             scheduleUpdateTimer()
         }
     }
@@ -81,9 +90,9 @@ class ModesConfigViewController: GroupedTableViewController, MSPUpdateSubscriber
     @objc func addButtonPressed(_ sender: UIButton) {
         let point = sender.convert(CGPoint.zero, to: tableView),
             section = tableView.indexPathForRow(at: point)!.section,
-            identifier = bluetoothSerial.isConnected ? dataStorage.auxConfigIDs[section] : sampleModeIDs[section]
-        modeRanges.append(ModeRange(id: identifier))
-        
+            //identifier = bluetoothSerial.isConnected ? dataStorage.auxConfigIDs[section] : sampleModeIDs[section] modeRanges.append(ModeRange(id: identifier))
+        identifier = tcpserial.isConnected ? dataStorage.auxConfigIDs[section] : sampleModeIDs[section]
+    modeRanges.append(ModeRange(id: identifier))
         if UIDevice.isPad {
             tableView.reloadData()
         } else {
@@ -140,11 +149,13 @@ class ModesConfigViewController: GroupedTableViewController, MSPUpdateSubscriber
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return (bluetoothSerial.isConnected ? dataStorage.auxConfigNames : sampleModeNames).count
+        //return (bluetoothSerial.isConnected ? dataStorage.auxConfigNames : sampleModeNames).count
+        return (tcpserial.isConnected ? dataStorage.auxConfigNames : sampleModeNames).count
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let identifier = bluetoothSerial.isConnected ? dataStorage.auxConfigIDs[section] : sampleModeIDs[section],
+        //let identifier = bluetoothSerial.isConnected ? dataStorage.auxConfigIDs[section] : sampleModeIDs[section], relevantRanges = modeRanges.filter({ $0.identifier == identifier })
+        let identifier = tcpserial.isConnected ? dataStorage.auxConfigIDs[section] : sampleModeIDs[section],
             relevantRanges = modeRanges.filter({ $0.identifier == identifier })
         return 1 + relevantRanges.count
     }
@@ -155,7 +166,8 @@ class ModesConfigViewController: GroupedTableViewController, MSPUpdateSubscriber
                 label = cell.viewWithTag(1) as! UILabel,
                 button = cell.viewWithTag(2) as! UIButton
             
-            label.text = (bluetoothSerial.isConnected ? dataStorage.auxConfigNames : sampleModeNames)[indexPath.section]
+            //label.text = (bluetoothSerial.isConnected ? dataStorage.auxConfigNames : sampleModeNames)[indexPath.section]
+            label.text = (tcpserial.isConnected ? dataStorage.auxConfigNames : sampleModeNames)[indexPath.section]
             button.addTarget(self, action: #selector(ModesConfigViewController.addButtonPressed(_:)), for: .touchUpInside)
             
             if UIDevice.isPhone {
@@ -167,7 +179,8 @@ class ModesConfigViewController: GroupedTableViewController, MSPUpdateSubscriber
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "ModeRangeCell", for: indexPath) as! ModeRangeTableViewCell
             
-            let range = modeRanges.filter({ $0.identifier == (bluetoothSerial.isConnected ? dataStorage.auxConfigIDs : sampleModeIDs)[indexPath.section]})[indexPath.row - 1]
+            //let range = modeRanges.filter({ $0.identifier == (bluetoothSerial.isConnected ? dataStorage.auxConfigIDs : sampleModeIDs)[indexPath.section]})[indexPath.row - 1]
+            let range = modeRanges.filter({ $0.identifier == (tcpserial.isConnected ? dataStorage.auxConfigIDs : sampleModeIDs)[indexPath.section]})[indexPath.row - 1]
             cell.modeRange = range
             
             let index = modeRanges.index{$0 === range}!

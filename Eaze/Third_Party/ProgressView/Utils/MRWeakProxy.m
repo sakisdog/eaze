@@ -9,10 +9,10 @@
 #import "MRWeakProxy.h"
 
 
-@implementation MRWeakProxy
+@implementation MRWeakProxy2
 
 + (instancetype)weakProxyWithTarget:(id)target {
-    MRWeakProxy *proxy = [self alloc];
+    MRWeakProxy2 *proxy = [self alloc];
     proxy.target = target;
     return proxy;
 }

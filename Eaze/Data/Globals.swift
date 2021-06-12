@@ -11,6 +11,7 @@ import UIKit
 // global variables
 var dataStorage = DataStorage()
 var bluetoothSerial = BluetoothSerial()
+var tcpserial = TCPSerial()
 var msp = MSPInterpreter()
 var console = AppLog()
 var cliActive = false

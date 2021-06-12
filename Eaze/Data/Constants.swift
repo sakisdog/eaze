@@ -67,7 +67,8 @@ let boards = [
     (identifier: "SDF3", name: "STM32F3 Discovery"),
     (identifier: "SRFM", name: "Seriously Pro Mini"),
     (identifier: "SPEV", name: "Seriously Pro EVO"),
-    (identifier: "IFF3", name: "ImmersionRC Fusion F3")
+    (identifier: "IFF3", name: "ImmersionRC Fusion F3"),
+    (identifier: "OBSD", name: "Omnibus F4 SD")
 ]
 
 let flightControllerVariants = [

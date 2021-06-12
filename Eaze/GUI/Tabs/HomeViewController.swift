@@ -12,7 +12,15 @@
 
 import UIKit
 
-final class HomeViewController: UIViewController, MSPUpdateSubscriber {
+final class HomeViewController: UIViewController, MSPUpdateSubscriber, TCPSerialDelegate {
+    func tcpserialdatareceived(data: Data) {
+        print(data)
+        print(String(decoding: data, as: UTF8.self))
+    }
+    
+    func tcpserialdatareceived(message: String) {
+        print(message)
+    }
     
     // MARK: - IBOutlets
     
@@ -40,7 +48,8 @@ final class HomeViewController: UIViewController, MSPUpdateSubscriber {
                 fastMSPCodes = [MSP_ATTITUDE],
                 slowMSPCodes = [MSP_STATUS, MSP_ANALOG]
     
-    
+    //let tcpserial = TCPSerial()
+
     // MARK: - Functions
     
     override func viewDidLoad() {
@@ -112,7 +121,10 @@ final class HomeViewController: UIViewController, MSPUpdateSubscriber {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        //tcpserial.delegate = self
         if bluetoothSerial.isConnected {
+            serialOpened() // send request & schedule timer
+        } else if tcpserial.isConnected {
             serialOpened() // send request & schedule timer
         } else {
             serialClosed() // reset UI
@@ -129,11 +141,18 @@ final class HomeViewController: UIViewController, MSPUpdateSubscriber {
         } else if bluetoothSerial.isScanning {
             bluetoothSerial.stopScan()
         }
+        if tcpserial.isConnected {
+            fastUpdateTimer?.invalidate()
+            slowUpdateTimer?.invalidate()
+        }
     }
     
     @objc func didBecomeActive() {
         guard isBeingShown else { return }
         if bluetoothSerial.isConnected {
+            serialOpened()
+        }
+        if tcpserial.isConnected {
             serialOpened()
         }
     }
@@ -145,6 +164,10 @@ final class HomeViewController: UIViewController, MSPUpdateSubscriber {
             slowUpdateTimer?.invalidate()
         } else if bluetoothSerial.isConnecting {
             bluetoothSerial.disconnect()
+        }
+        if tcpserial.isConnected {
+            fastUpdateTimer?.invalidate()
+            slowUpdateTimer?.invalidate()
         }
     }
     
@@ -177,7 +200,7 @@ final class HomeViewController: UIViewController, MSPUpdateSubscriber {
     
     @objc func sendSlowDataRequest() {
         msp.sendMSP(slowMSPCodes)
-        bluetoothSerial.readRSSI(rssiUpdated)
+        //bluetoothSerial.readRSSI(rssiUpdated)
     }
     
     func rssiUpdated(_ RSSI: NSNumber) {
@@ -194,14 +217,16 @@ final class HomeViewController: UIViewController, MSPUpdateSubscriber {
             
         case MSP_BOARD_INFO:
             infoBox.firstUpperText = dataStorage.boardName
-            infoBox.secondUpperText = dataStorage.boardVersion > 0 ? "version \(dataStorage.boardVersion)" : ""
+            infoBox.secondUpperText = dataStorage.boardVersion > 0 ? "version \(dataStorage.boardVersion)" : "unknown"
             infoBox.reloadText()
             
         case MSP_FC_VARIANT, MSP_FC_VERSION:
+            print(dataStorage.flightControllerName)
             infoBox.firstLowerText = dataStorage.flightControllerName + " " + dataStorage.flightControllerVersion.stringValue
             infoBox.reloadText()
             
         case MSP_BUILD_INFO:
+            print(dataStorage.buildInfo)
             infoBox.secondLowerText = dataStorage.buildInfo
             infoBox.reloadText()
             
@@ -337,34 +362,41 @@ final class HomeViewController: UIViewController, MSPUpdateSubscriber {
         }
     }
     
-    
+
     // MARK: - IBActions
     
     @IBAction func connect(_ sender: AnyObject) {
-        if bluetoothSerial.isConnected || bluetoothSerial.isReconnecting {
-            bluetoothSerial.disconnect()
-
-        } else if bluetoothSerial.isConnecting {
-            connectButton.setTitle("Connect", for: UIControlState()) // we have to do this here because
-            activityIndicator.stopAnimating() // serialClosed may not be called while connecting
-            bluetoothSerial.disconnect()
-            
-        } else if bluetoothSerial.isScanning {
-            bluetoothSerial.stopScan()
-                    
+        if (!tcpserial.isConnected){
+            tcpserial.setupNetworkCommunication()
+            connectButton.setTitle("Disconnect", for: UIControlState())
         } else {
-            if bluetoothSerial.state != .poweredOn {
-                let alert = UIAlertController(title: "Bluetooth is disabled",
-                                            message: nil,
-                                     preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
-                present(alert, animated: true, completion: nil)
-                return
-            }
-            
-            connectButton.setTitle("Scanning", for: UIControlState())
-            activityIndicator.startAnimating()
-            bluetoothSerial.startScan()
+            tcpserial.disconnect()
+            connectButton.setTitle("Connect", for: UIControlState())
         }
+//        if bluetoothSerial.isConnected || bluetoothSerial.isReconnecting {
+//            bluetoothSerial.disconnect()
+//
+//        } else if bluetoothSerial.isConnecting {
+//            connectButton.setTitle("Connect", for: UIControlState()) // we have to do this here because
+//            activityIndicator.stopAnimating() // serialClosed may not be called while connecting
+//            bluetoothSerial.disconnect()
+//
+//        } else if bluetoothSerial.isScanning {
+//            bluetoothSerial.stopScan()
+//
+//        } else {
+//            if bluetoothSerial.state != .poweredOn {
+//                let alert = UIAlertController(title: "Bluetooth is disabled",
+//                                            message: nil,
+//                                     preferredStyle: .alert)
+//                alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
+//                present(alert, animated: true, completion: nil)
+//                return
+//            }
+//
+//            connectButton.setTitle("Scanning", for: UIControlState())
+//            activityIndicator.startAnimating()
+//            bluetoothSerial.startScan()
+//        }
     }
 }

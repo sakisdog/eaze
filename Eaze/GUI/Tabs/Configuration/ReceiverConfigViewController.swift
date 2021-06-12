@@ -60,6 +60,9 @@ final class ReceiverConfigViewController: GroupedTableViewController, SelectionT
         if bluetoothSerial.isConnected {
             sendDataRequest()
             serialOpened()
+        } else if tcpserial.isConnected {
+            sendDataRequest()
+            serialOpened()
         } else {
             serialClosed()
         }

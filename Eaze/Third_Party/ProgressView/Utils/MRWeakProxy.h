@@ -12,7 +12,7 @@
 /**
  Weak proxy to use in places where parameters will be retained, but should not.
  */
-@interface MRWeakProxy : NSProxy
+@interface MRWeakProxy2 : NSProxy
 
 /**
  Target object.
